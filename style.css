@@ -251,3 +251,136 @@ header {
     border: 1px solid #eee;
     font-size: 14px;
 }
+
+/* =========================================
+   📱 MOBILE RESPONSIVENESS (Screens under 768px)
+   ========================================= */
+@media (max-width: 768px) {
+    
+    /* 1. Make everything full screen */
+    body {
+        align-items: flex-start; 
+        background-color: white; 
+    }
+
+    /* --- LOGIN SCREEN MOBILE --- */
+    .login-wrapper {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        flex-direction: column; /* Stack top and bottom */
+    }
+
+    .login-info {
+        flex: none; /* Don't stretch to 50% height */
+        padding: 30px 20px;
+    }
+
+    .login-info h1 {
+        font-size: 2.2rem;
+        margin-bottom: 5px;
+    }
+
+    .login-info p {
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+
+    .stats-box {
+        gap: 15px;
+    }
+
+    .stat {
+        padding: 10px 15px;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+    }
+
+    .login-form {
+        flex: 1;
+        padding: 30px 20px;
+        justify-content: flex-start; /* Push form to top */
+    }
+
+    .login-form input, 
+    .login-form button {
+        width: 100%; /* Full width inputs on phone */
+        max-width: none;
+    }
+
+    /* --- CHAT SCREEN MOBILE --- */
+    .chat-container {
+        width: 100vw;
+        height: 100vh; 
+        border-radius: 0;
+        flex-direction: column; /* Stack chat and sidebar */
+    }
+
+    .chat-main {
+        flex: 1; 
+        border-right: none;
+    }
+
+    header {
+        padding: 10px 15px;
+    }
+
+    .app-branding {
+        font-size: 1.2rem;
+    }
+
+    .room-controls {
+        gap: 10px;
+        font-size: 0.9rem;
+    }
+
+    .danger-btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .message {
+        max-width: 85%; /* Let messages take up more width */
+    }
+
+    .input-area {
+        padding: 10px;
+    }
+
+    /* --- MAGIC TRICK: Turn Sidebar into a Bottom Bar --- */
+    .chat-sidebar {
+        flex: none; 
+        height: auto; 
+        border-top: 1px solid #ddd;
+        padding: 10px;
+    }
+
+    .chat-sidebar h3 {
+        font-size: 14px;
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+    }
+    
+    #search-users {
+        padding: 6px;
+        margin-bottom: 10px;
+    }
+    
+    /* Make the user list scroll sideways! */
+    #user-list {
+        display: flex; 
+        flex-direction: row;
+        gap: 10px;
+        overflow-x: auto; 
+        overflow-y: hidden;
+        padding-bottom: 5px;
+    }
+    
+    #user-list li {
+        flex-shrink: 0; /* Prevents names from squishing */
+        margin-bottom: 0;
+        padding: 6px 12px;
+    }
+}
