@@ -667,9 +667,8 @@ header {
    📱 RESPONSIVE: MOBILE (≤ 768px)
    ══════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  /* Lock the viewport so the browser chrome doesn't cause overflow */
   html, body {
-    height: 100dvh;
+    height: 100%;
     overflow: hidden;
   }
 
@@ -679,15 +678,23 @@ header {
   }
   body::before, body::after { display: none; }
 
-  /* Login — fills the locked body height exactly */
-  .login-wrapper {
+  /* ── KEY FIX: position:fixed; inset:0 is always anchored
+     to the VISUAL viewport — immune to browser chrome
+     appearing/disappearing on scroll ────────────────────── */
+  .login-wrapper,
+  .chat-container {
+    position: fixed;
+    inset: 0;             /* top:0 right:0 bottom:0 left:0 */
     width: 100%;
-    height: 100%;           /* 100% of the 100dvh body — no double-stacking */
-    min-height: unset;
+    height: 100%;
     border-radius: 0;
     border: none;
-    flex-direction: column;
+    min-height: unset;
   }
+
+  /* ── Login ── */
+  .login-wrapper { flex-direction: column; }
+
   .login-info {
     flex: none;
     padding: 28px 20px 24px;
@@ -712,47 +719,44 @@ header {
   .login-form input { padding: 13px 16px; font-size: 16px; }
   .login-form button { font-size: 15px; }
 
-  /* Chat — same: fills the locked body height */
-  .chat-container {
-    width: 100%;
-    height: 100%;           /* fills the 100dvh body */
-    min-height: unset;
-    border-radius: 0;
-    border: none;
-    flex-direction: column;
-  }
-
+  /* ── Chat ── */
   .chat-main {
     flex: 1;
-    min-height: 0;          /* critical — lets flex children shrink properly */
+    min-height: 0;
     display: flex;
     flex-direction: column;
   }
 
   header {
-    flex-shrink: 0;         /* header never compresses */
+    flex-shrink: 0;
     padding: 12px 16px;
+    /* Extra safety: keep above any browser UI */
+    position: relative;
+    z-index: 2;
   }
   .app-branding { font-size: 1.3rem; }
-  .room-controls { gap: 8px; font-size: 0.85rem; }
+  .room-controls { gap: 8px; }
   .room-badge { padding: 6px 12px; font-size: 0.82rem; gap: 6px; }
   .danger-btn { padding: 5px 14px; font-size: 0.8rem; }
 
   .chat-window {
     flex: 1;
-    min-height: 0;          /* allows scroll area to shrink, not push input away */
+    min-height: 0;   /* lets it shrink when keyboard opens */
     padding: 16px 14px;
+    overflow-y: auto;
   }
   .message { max-width: 84%; font-size: 0.9rem; }
 
-  /* Input: flex-shrink 0 + safe-area bottom inset removes the gap */
   .input-area {
     flex-shrink: 0;
     padding: 10px 14px;
+    /* Sit above phone gesture bar */
     padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
     gap: 10px;
+    position: relative;
+    z-index: 2;
   }
-  #message-input { padding: 11px 16px; font-size: 15px; }
+  #message-input { padding: 11px 16px; font-size: 16px; }
   #send-btn { width: 42px; height: 42px; }
 
   /* Modal */
