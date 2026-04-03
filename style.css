@@ -667,16 +667,22 @@ header {
    📱 RESPONSIVE: MOBILE (≤ 768px)
    ══════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* Lock the viewport so the browser chrome doesn't cause overflow */
+  html, body {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
   body {
     align-items: flex-start;
     background: linear-gradient(160deg, var(--bg-from) 0%, var(--bg-to) 100%);
   }
   body::before, body::after { display: none; }
 
-  /* Login */
+  /* Login — fills the locked body height exactly */
   .login-wrapper {
-    width: 100vw;
-    height: 100dvh;
+    width: 100%;
+    height: 100%;           /* 100% of the 100dvh body — no double-stacking */
     min-height: unset;
     border-radius: 0;
     border: none;
@@ -706,24 +712,48 @@ header {
   .login-form input { padding: 13px 16px; font-size: 16px; }
   .login-form button { font-size: 15px; }
 
-  /* Chat */
+  /* Chat — same: fills the locked body height */
   .chat-container {
-    width: 100vw;
-    height: 100dvh;
+    width: 100%;
+    height: 100%;           /* fills the 100dvh body */
     min-height: unset;
     border-radius: 0;
     border: none;
+    flex-direction: column;
   }
-  header { padding: 12px 16px; }
+
+  .chat-main {
+    flex: 1;
+    min-height: 0;          /* critical — lets flex children shrink properly */
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    flex-shrink: 0;         /* header never compresses */
+    padding: 12px 16px;
+  }
   .app-branding { font-size: 1.3rem; }
   .room-controls { gap: 8px; font-size: 0.85rem; }
   .room-badge { padding: 6px 12px; font-size: 0.82rem; gap: 6px; }
   .danger-btn { padding: 5px 14px; font-size: 0.8rem; }
-  .chat-window { padding: 16px 14px; }
+
+  .chat-window {
+    flex: 1;
+    min-height: 0;          /* allows scroll area to shrink, not push input away */
+    padding: 16px 14px;
+  }
   .message { max-width: 84%; font-size: 0.9rem; }
-  .input-area { padding: 10px 14px; gap: 10px; }
+
+  /* Input: flex-shrink 0 + safe-area bottom inset removes the gap */
+  .input-area {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    gap: 10px;
+  }
   #message-input { padding: 11px 16px; font-size: 15px; }
-  #send-btn { width: 42px; height: 42px; font-size: 18px; }
+  #send-btn { width: 42px; height: 42px; }
 
   /* Modal */
   .modal-card {
