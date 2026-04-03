@@ -678,18 +678,19 @@ header {
   }
   body::before, body::after { display: none; }
 
-  /* ── KEY FIX: position:fixed; inset:0 is always anchored
-     to the VISUAL viewport — immune to browser chrome
-     appearing/disappearing on scroll ────────────────────── */
+  /* ── KEY FIX: position:fixed; inset:8px gives breathing room
+     on all sides — even if browser chrome cuts in, the header
+     and input bar are never right at the edge and never clipped ── */
   .login-wrapper,
   .chat-container {
     position: fixed;
-    inset: 0;             /* top:0 right:0 bottom:0 left:0 */
-    width: 100%;
-    height: 100%;
-    border-radius: 0;
-    border: none;
+    inset: 8px;             /* 8px margin on all four sides */
+    width: auto;            /* auto so inset controls the width */
+    height: auto;           /* auto so inset controls the height */
+    border-radius: 16px;    /* subtle rounded corners — looks intentional */
+    border: 1px solid var(--glass-border);
     min-height: unset;
+    overflow: hidden;
   }
 
   /* ── Login ── */
