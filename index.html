@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LetsChat</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div class="login-wrapper" id="login-screen">
+        
+        <div class="login-info">
+            <h1>LetsChat</h1>
+            <p>Connect instantly. Chat securely.</p>
+            
+            <div class="stats-box">
+                <div class="stat">
+                    <span class="stat-number" id="global-user-count">0</span>
+                    <span class="stat-label">Users Online</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="global-room-count">0</span>
+                    <span class="stat-label">Active Rooms</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="login-form">
+            <h2>Join a Room</h2>
+            <input type="text" id="username-input" placeholder="Your Name" required>
+            <input type="text" id="room-input" placeholder="Room Number (e.g., 101)" required>
+            <input type="password" id="password-input" placeholder="Room Password" required>
+            <button id="join-btn">Enter Chat</button>
+        </div>
+    </div>
+
+    <div class="chat-container" id="chat-screen" style="display: none;">
+        <div class="chat-main">
+            <header>
+                <div class="app-branding">LetsChat</div>
+                <div class="room-controls">
+                    <span>Room: <strong id="room-display"></strong></span>
+                    <button id="leave-btn" class="danger-btn">Leave Room</button>
+                </div>
+            </header>
+            <div class="chat-window" id="chat-window"></div>
+            <div class="input-area">
+                <input type="text" id="message-input" placeholder="Type a message...">
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+        <div class="chat-sidebar">
+            <h3>Participants (<span id="user-count">0</span>)</h3>
+            <input type="text" id="search-users" placeholder="Search users...">
+            <ul id="user-list"></ul>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
