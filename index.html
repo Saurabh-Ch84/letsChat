@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LetsChat</title>
+    <title>LetsChat – Real-time Rooms</title>
+    <meta name="description" content="LetsChat – Connect instantly in real-time chat rooms. Secure, fast, and beautiful.">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     
+    <!-- ══ LOGIN SCREEN ══ -->
     <div class="login-wrapper" id="login-screen">
         
         <div class="login-info">
@@ -28,33 +33,79 @@
         </div>
 
         <div class="login-form">
-            <h2>Join a Room</h2>
-            <input type="text" id="username-input" placeholder="Your Name" required>
-            <input type="text" id="room-input" placeholder="Room Number (e.g., 101)" required>
-            <input type="password" id="password-input" placeholder="Room Password" required>
-            <button id="join-btn">Enter Chat</button>
+            <h2>Join a <span>Room</span></h2>
+
+            <div class="form-field">
+                <label for="username-input">Your Name</label>
+                <input type="text" id="username-input" placeholder="e.g. Alex" required autocomplete="nickname">
+            </div>
+            <div class="form-field">
+                <label for="room-input">Room Number</label>
+                <input type="text" id="room-input" placeholder="e.g. 101" required autocomplete="off">
+            </div>
+            <div class="form-field">
+                <label for="password-input">Room Password</label>
+                <input type="password" id="password-input" placeholder="Set or enter password" required autocomplete="current-password">
+            </div>
+
+            <button id="join-btn">✦ Enter Chat</button>
         </div>
     </div>
 
+    <!-- ══ CHAT SCREEN (no sidebar) ══ -->
     <div class="chat-container" id="chat-screen" style="display: none;">
         <div class="chat-main">
             <header>
                 <div class="app-branding">LetsChat</div>
                 <div class="room-controls">
-                    <span>Room: <strong id="room-display"></strong></span>
-                    <button id="leave-btn" class="danger-btn">Leave Room</button>
+                    <!-- clicking this badge opens the participants popup -->
+                    <button class="room-badge" id="participants-btn" aria-label="View participants">
+                        Room: <strong id="room-display"></strong>
+                        <span class="participant-count-badge" id="header-user-count">0</span>
+                    </button>
+                    <button id="leave-btn" class="danger-btn">✕ Leave</button>
                 </div>
             </header>
             <div class="chat-window" id="chat-window"></div>
             <div class="input-area">
-                <input type="text" id="message-input" placeholder="Type a message...">
-                <button id="send-btn">Send</button>
+                <input type="text" id="message-input" placeholder="Type a message…" autocomplete="off">
+                <button id="send-btn" aria-label="Send message">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
             </div>
         </div>
-        <div class="chat-sidebar">
-            <h3>Participants (<span id="user-count">0</span>)</h3>
-            <input type="text" id="search-users" placeholder="Search users...">
+    </div>
+
+    <!-- ══ PARTICIPANTS POPUP MODAL ══ -->
+    <div class="modal-overlay" id="participants-modal" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-label="Participants">
+            <div class="modal-header">
+                <h3>Participants (<span id="modal-user-count">0</span>)</h3>
+                <button class="modal-close-btn" id="close-modal-btn" aria-label="Close participants">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <input type="text" id="search-users" placeholder="🔍 Search users…" autocomplete="off">
             <ul id="user-list"></ul>
+        </div>
+    </div>
+
+    <!-- ══ LEAVE CONFIRMATION DIALOG ══ -->
+    <div class="modal-overlay" id="leave-confirm-modal" aria-hidden="true">
+        <div class="modal-card confirm-card" role="alertdialog" aria-modal="true" aria-label="Leave room confirmation">
+            <div class="confirm-icon">🚪</div>
+            <h3 class="confirm-title">Leave Room?</h3>
+            <p class="confirm-subtitle">You'll exit the chat and lose your session in this room.</p>
+            <div class="confirm-actions">
+                <button id="confirm-stay-btn" class="confirm-btn confirm-btn--cancel">Stay</button>
+                <button id="confirm-leave-btn" class="confirm-btn confirm-btn--danger">Yes, Leave</button>
+            </div>
         </div>
     </div>
 

@@ -1,41 +1,122 @@
 const socket = io();
 
+// ── Global stats (login screen) ──────────────────────────────
 const globalUserCount = document.getElementById('global-user-count');
 const globalRoomCount = document.getElementById('global-room-count');
-
-// NEW: Listen for live statistics from the server
 socket.on('global stats', (stats) => {
     globalUserCount.textContent = stats.users;
     globalRoomCount.textContent = stats.rooms;
 });
 
-// UI Elements
-const loginScreen = document.getElementById('login-screen');
-const chatScreen = document.getElementById('chat-screen');
-const usernameInput = document.getElementById('username-input');
-const roomInput = document.getElementById('room-input');
-const passwordInput = document.getElementById('password-input');
-const joinBtn = document.getElementById('join-btn');
+// ── UI Elements ──────────────────────────────────────────────
+const loginScreen       = document.getElementById('login-screen');
+const chatScreen        = document.getElementById('chat-screen');
+const usernameInput     = document.getElementById('username-input');
+const roomInput         = document.getElementById('room-input');
+const passwordInput     = document.getElementById('password-input');
+const joinBtn           = document.getElementById('join-btn');
 
-const roomDisplay = document.getElementById('room-display');
-const chatWindow = document.getElementById('chat-window');
-const messageInput = document.getElementById('message-input');
-const sendBtn = document.getElementById('send-btn');
-const leaveBtn = document.getElementById('leave-btn');
+const roomDisplay       = document.getElementById('room-display');
+const chatWindow        = document.getElementById('chat-window');
+const messageInput      = document.getElementById('message-input');
+const sendBtn           = document.getElementById('send-btn');
+const leaveBtn          = document.getElementById('leave-btn');
 
-const userList = document.getElementById('user-list');
-const userCount = document.getElementById('user-count');
-const searchUsers = document.getElementById('search-users');
+const headerUserCount   = document.getElementById('header-user-count');
 
-let myUsername = ''; 
-let currentUsers = []; // Store users for searching
+// Participants modal
+const participantsBtn   = document.getElementById('participants-btn');
+const participantsModal = document.getElementById('participants-modal');
+const closeModalBtn     = document.getElementById('close-modal-btn');
+const modalUserCount    = document.getElementById('modal-user-count');
+const userList          = document.getElementById('user-list');
+const searchUsers       = document.getElementById('search-users');
 
-// --- 1. LOGIN / LEAVE LOGIC ---
+// Leave confirmation modal
+const leaveConfirmModal = document.getElementById('leave-confirm-modal');
+const confirmLeaveBtn   = document.getElementById('confirm-leave-btn');
+const confirmStayBtn    = document.getElementById('confirm-stay-btn');
+
+let myUsername   = '';
+let currentUsers = [];
+let isInRoom     = false;
+
+// ── Refresh / navigation guard ────────────────────────────────
+window.addEventListener('beforeunload', (e) => {
+    if (isInRoom) {
+        e.preventDefault();
+        e.returnValue = ''; // Chrome requires returnValue to be set
+    }
+});
+
+// ── Helpers: open / close modal ──────────────────────────────
+function openModal(overlay) {
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+}
+function closeModal(overlay) {
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+}
+
+// ── Participants modal triggers ───────────────────────────────
+participantsBtn.addEventListener('click', () => {
+    renderUserList(currentUsers); // refresh list before showing
+    searchUsers.value = '';
+    openModal(participantsModal);
+    setTimeout(() => searchUsers.focus(), 100);
+});
+
+closeModalBtn.addEventListener('click', () => closeModal(participantsModal));
+
+// Close on backdrop click
+participantsModal.addEventListener('click', (e) => {
+    if (e.target === participantsModal) closeModal(participantsModal);
+});
+
+// ── Search inside participants modal ─────────────────────────
+searchUsers.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    const filtered = currentUsers.filter(u => u.name.toLowerCase().includes(term));
+    renderUserList(filtered);
+});
+
+// ── Leave confirmation modal triggers ────────────────────────
+leaveBtn.addEventListener('click', () => {
+    // Close participants modal first if open
+    closeModal(participantsModal);
+    openModal(leaveConfirmModal);
+});
+
+confirmStayBtn.addEventListener('click', () => closeModal(leaveConfirmModal));
+
+// Close confirm on backdrop click (same as "stay")
+leaveConfirmModal.addEventListener('click', (e) => {
+    if (e.target === leaveConfirmModal) closeModal(leaveConfirmModal);
+});
+
+// Confirmed leave
+confirmLeaveBtn.addEventListener('click', () => {
+    closeModal(leaveConfirmModal);
+    doLeaveRoom();
+});
+
+// ── Escape key closes whichever modal is open ─────────────────
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (leaveConfirmModal.classList.contains('open')) {
+            closeModal(leaveConfirmModal);
+        } else if (participantsModal.classList.contains('open')) {
+            closeModal(participantsModal);
+        }
+    }
+});
+
+// ── Join room ────────────────────────────────────────────────
 joinBtn.addEventListener('click', () => {
     const username = usernameInput.value.trim();
     const roomName = roomInput.value.trim();
     const password = passwordInput.value.trim();
-
     if (username && roomName && password) {
         myUsername = username;
         socket.emit('join room', { username, roomName, password });
@@ -45,80 +126,74 @@ joinBtn.addEventListener('click', () => {
 socket.on('login error', (msg) => alert(msg));
 
 socket.on('join success', (roomName) => {
-    loginScreen.style.display = 'none';      
-    chatScreen.style.display = 'flex'; // Uses Flexbox now!
-    roomDisplay.textContent = roomName;      
-    chatWindow.innerHTML = ''; // Clear old messages
+    isInRoom = true;
+    loginScreen.style.display = 'none';
+    chatScreen.style.display  = 'flex';
+    roomDisplay.textContent   = roomName;
+    chatWindow.innerHTML      = '';
 });
 
-// Leave Room Logic
-leaveBtn.addEventListener('click', () => {
+// ── Do the actual leave ──────────────────────────────────────
+function doLeaveRoom() {
+    isInRoom = false;
     socket.emit('leave room');
-    chatScreen.style.display = 'none';
+    chatScreen.style.display  = 'none';
     loginScreen.style.display = 'flex';
-    // Clear inputs for next time
-    roomInput.value = '';
+    roomInput.value    = '';
     passwordInput.value = '';
-});
+    chatWindow.innerHTML = '';
+    currentUsers = [];
+    headerUserCount.textContent = '0';
+    modalUserCount.textContent  = '0';
+}
 
-// --- 2. PARTICIPANT LIST & SEARCH ---
+// ── Participant list ─────────────────────────────────────────
 function renderUserList(usersToRender) {
-    userList.innerHTML = ''; // Clear list
+    userList.innerHTML = '';
     usersToRender.forEach(user => {
         const li = document.createElement('li');
-        // Add a (You) tag if it's the current user
-        li.textContent = user.name === myUsername ? `${user.name} (You)` : user.name;
+        if (user.name === myUsername) {
+            li.textContent = `${user.name} (You)`;
+            li.classList.add('is-you');
+        } else {
+            li.textContent = user.name;
+        }
         userList.appendChild(li);
     });
 }
 
-// Receive updated user list from server
 socket.on('room users', (users) => {
     currentUsers = users;
-    userCount.textContent = users.length;
-    // Re-run search filter immediately in case they are currently searching
-    const searchTerm = searchUsers.value.toLowerCase();
-    const filteredUsers = currentUsers.filter(u => u.name.toLowerCase().includes(searchTerm));
-    renderUserList(filteredUsers);
+    headerUserCount.textContent = users.length;
+    modalUserCount.textContent  = users.length;
+    // Re-apply live search filter if modal is open
+    const term     = searchUsers.value.toLowerCase();
+    const filtered = term ? currentUsers.filter(u => u.name.toLowerCase().includes(term)) : currentUsers;
+    renderUserList(filtered);
 });
 
-// Search bar functionality
-searchUsers.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const filteredUsers = currentUsers.filter(user => 
-        user.name.toLowerCase().includes(searchTerm)
-    );
-    renderUserList(filteredUsers);
-});
-
-// --- 3. CHAT LOGIC ---
+// ── Chat ─────────────────────────────────────────────────────
 function appendMessage(sender, text, isSystem = false) {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message');
-    
+    const div = document.createElement('div');
+    div.classList.add('message');
     if (isSystem) {
-        messageDiv.style.backgroundColor = '#e2e3e5';
-        messageDiv.style.fontStyle = 'italic';
-        messageDiv.style.alignSelf = 'center';
-        messageDiv.textContent = text;
+        div.classList.add('system');
+        div.textContent = text;
+    } else if (sender === myUsername) {
+        div.classList.add('mine');
+        div.innerHTML = `<strong>You:</strong> ${text}`;
     } else {
-        if (sender === myUsername) {
-            messageDiv.style.backgroundColor = '#dcf8c6'; 
-            messageDiv.style.alignSelf = 'flex-end';
-            messageDiv.innerHTML = `<strong>You:</strong> ${text}`;
-        } else {
-            messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
-        }
+        div.innerHTML = `<strong>${sender}:</strong> ${text}`;
     }
-    chatWindow.appendChild(messageDiv);
-    chatWindow.scrollTop = chatWindow.scrollHeight; 
+    chatWindow.appendChild(div);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
 sendBtn.addEventListener('click', () => {
-    const message = messageInput.value;
-    if (message.trim() !== '') {
+    const message = messageInput.value.trim();
+    if (message) {
         socket.emit('chat message', message);
-        messageInput.value = ''; 
+        messageInput.value = '';
     }
 });
 
@@ -126,5 +201,5 @@ messageInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendBtn.click();
 });
 
-socket.on('chat message', (data) => appendMessage(data.username, data.text));
-socket.on('system message', (msg) => appendMessage('System', msg, true));
+socket.on('chat message',   (data) => appendMessage(data.username, data.text));
+socket.on('system message', (msg)  => appendMessage('System', msg, true));
